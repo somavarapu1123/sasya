@@ -1,0 +1,372 @@
+{% doc %}
+  @prompt
+    give me a vegetable animation effect in this block, provide me animation option to float down also
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-veggie-animation-{{ ai_gen_id }} {
+    display: block;
+    position: relative;
+    width: {{ block.settings.desktop_width_percent }}%;
+    max-width: 100%;
+    padding: {{ block.settings.padding }}px;
+    background-color: {{ block.settings.background_color }};
+    overflow: hidden;
+  }
+
+  .ai-veggie-animation__container-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: {{ block.settings.container_height }}px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-veggie-animation__veggie-{{ ai_gen_id }} {
+    position: absolute;
+    font-size: {{ block.settings.veggie_size }}px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ai-veggie-animation__text-{{ ai_gen_id }} {
+    text-align: center;
+    color: {{ block.settings.text_color }};
+    font-size: {{ block.settings.text_size }}px;
+    z-index: 10;
+    position: relative;
+  }
+
+  @keyframes ai-veggie-float-up-{{ ai_gen_id }} {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ai-veggie-float-down-{{ ai_gen_id }} {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ai-veggie-bounce-{{ ai_gen_id }} {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-20px) scale(1.1);
+    }
+  }
+
+  @keyframes ai-veggie-spin-{{ ai_gen_id }} {
+    0% {
+      transform: rotate(0deg) scale(1);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    50% {
+      transform: rotate(180deg) scale(1.2);
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+      opacity: 0;
+    }
+  }
+
+  @keyframes ai-veggie-wave-{{ ai_gen_id }} {
+    0% {
+      transform: translateX(-100vw) translateY(0);
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    25% {
+      transform: translateX(25vw) translateY(-30px);
+    }
+    50% {
+      transform: translateX(50vw) translateY(0);
+    }
+    75% {
+      transform: translateX(75vw) translateY(-30px);
+    }
+    90% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(100vw) translateY(0);
+      opacity: 0;
+    }
+  }
+{% endstyle %}
+
+<veggie-animation-{{ ai_gen_id }}
+  class="ai-veggie-animation-{{ ai_gen_id }}"
+  data-animation-type="{{ block.settings.animation_type }}"
+  data-veggie-count="{{ block.settings.veggie_count }}"
+  data-animation-speed="{{ block.settings.animation_speed }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-veggie-animation__container-{{ ai_gen_id }}">
+    {% if block.settings.text != blank %}
+      <div class="ai-veggie-animation__text-{{ ai_gen_id }}">
+        {{ block.settings.text }}
+      </div>
+    {% endif %}
+  </div>
+</veggie-animation-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class VeggieAnimation{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.vegetables = ['🥕', '🥦', '🌽', '🍅', '🥒', '🫑', '🥬', '🧅', '🧄', '🥔', '🍆', '🌶️'];
+        this.container = null;
+        this.animationType = '';
+        this.veggieCount = 0;
+        this.animationSpeed = 0;
+        this.intervalId = null;
+      }
+
+      connectedCallback() {
+        this.container = this.querySelector('.ai-veggie-animation__container-{{ ai_gen_id }}');
+        this.animationType = this.dataset.animationType;
+        this.veggieCount = parseInt(this.dataset.veggieCount);
+        this.animationSpeed = parseFloat(this.dataset.animationSpeed);
+        
+        this.startAnimation();
+      }
+
+      disconnectedCallback() {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+        }
+      }
+
+      startAnimation() {
+        const createVeggie = () => {
+          const veggie = document.createElement('div');
+          veggie.className = 'ai-veggie-animation__veggie-{{ ai_gen_id }}';
+          veggie.textContent = this.vegetables[Math.floor(Math.random() * this.vegetables.length)];
+          
+          const startX = Math.random() * 100;
+          veggie.style.left = startX + '%';
+          
+          if (this.animationType === 'float_up') {
+            veggie.style.bottom = '0';
+            veggie.style.animation = 'ai-veggie-float-up-{{ ai_gen_id }} ' + this.animationSpeed + 's linear forwards';
+            veggie.style.animationDelay = Math.random() * 2 + 's';
+          } else if (this.animationType === 'float_down') {
+            veggie.style.top = '0';
+            veggie.style.animation = 'ai-veggie-float-down-{{ ai_gen_id }} ' + this.animationSpeed + 's linear forwards';
+            veggie.style.animationDelay = Math.random() * 2 + 's';
+          } else if (this.animationType === 'bounce') {
+            veggie.style.top = Math.random() * 80 + '%';
+            veggie.style.animation = 'ai-veggie-bounce-{{ ai_gen_id }} ' + (this.animationSpeed / 2) + 's ease-in-out infinite';
+            veggie.style.animationDelay = Math.random() * 2 + 's';
+            veggie.style.opacity = '1';
+          } else if (this.animationType === 'spin') {
+            veggie.style.top = '50%';
+            veggie.style.left = '50%';
+            veggie.style.animation = 'ai-veggie-spin-{{ ai_gen_id }} ' + this.animationSpeed + 's ease-in-out forwards';
+            veggie.style.animationDelay = Math.random() * 1 + 's';
+          } else if (this.animationType === 'wave') {
+            veggie.style.top = Math.random() * 60 + 20 + '%';
+            veggie.style.left = '0';
+            veggie.style.animation = 'ai-veggie-wave-{{ ai_gen_id }} ' + this.animationSpeed + 's ease-in-out forwards';
+            veggie.style.animationDelay = Math.random() * 2 + 's';
+          }
+          
+          this.container.appendChild(veggie);
+          
+          setTimeout(() => {
+            if (veggie.parentNode) {
+              veggie.remove();
+            }
+          }, (this.animationSpeed + 2) * 1000);
+        };
+
+        for (let i = 0; i < this.veggieCount; i++) {
+          setTimeout(() => createVeggie(), i * 500);
+        }
+
+        this.intervalId = setInterval(() => {
+          createVeggie();
+        }, this.animationSpeed * 1000 / this.veggieCount);
+      }
+    }
+
+    customElements.define('veggie-animation-{{ ai_gen_id }}', VeggieAnimation{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Vegetable animation",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Animation"
+    },
+    {
+      "type": "select",
+      "id": "animation_type",
+      "label": "Animation type",
+      "options": [
+        {
+          "value": "float_up",
+          "label": "Float up"
+        },
+        {
+          "value": "float_down",
+          "label": "Float down"
+        },
+        {
+          "value": "bounce",
+          "label": "Bounce"
+        },
+        {
+          "value": "spin",
+          "label": "Spin"
+        },
+        {
+          "value": "wave",
+          "label": "Wave"
+        }
+      ],
+      "default": "float_up"
+    },
+    {
+      "type": "range",
+      "id": "veggie_count",
+      "label": "Number of vegetables",
+      "min": 5,
+      "max": 30,
+      "step": 5,
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "animation_speed",
+      "label": "Animation speed",
+      "min": 3,
+      "max": 15,
+      "step": 1,
+      "unit": "s",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "veggie_size",
+      "label": "Vegetable size",
+      "min": 20,
+      "max": 80,
+      "step": 5,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Fresh Vegetables</p>"
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "label": "Text size",
+      "min": 16,
+      "max": 72,
+      "step": 4,
+      "unit": "px",
+      "default": 32
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text color",
+      "default": "#104556"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "container_height",
+      "label": "Container height",
+      "min": 200,
+      "max": 600,
+      "step": 50,
+      "unit": "px",
+      "default": 400
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "label": "Padding",
+      "min": 0,
+      "max": 100,
+      "step": 10,
+      "unit": "px",
+      "default": 40
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "desktop_width_percent",
+      "label": "Desktop width",
+      "min": 50,
+      "max": 100,
+      "step": 5,
+      "unit": "%",
+      "default": 100
+    }
+  ],
+  "presets": [
+    {
+      "name": "Vegetable animation"
+    }
+  ]
+}
+{% endschema %}

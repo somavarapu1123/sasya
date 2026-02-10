@@ -1,0 +1,803 @@
+{% doc %}
+  @prompt
+    generate a block to showcase trending generes in portrait shaped images with curved edges/radius and 3 per row in mobile view, 6 per row in desktop view, with the genere name below in bold letters and the entire section should be alligned to center in both mobile and desktop view., slightly drop the shadows inward so that the portrait shape should look like etched deep inside screen, etch it from all directions and a bit deeper, or give an option to adjust the etching, add option for hover action controls, don't limit it to 6, if i want, i may add more in future. and odn't forget to alllign this section to middle in both mobile and desktop view, give me the control over number of rows and coulms in both mobile and desktop view, add view all button at the bottom with curved edges recatangle shape
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-genre-grid-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    padding: 40px 20px;
+  }
+
+  .ai-genre-grid__container-{{ ai_gen_id }} {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .ai-genre-grid__heading-{{ ai_gen_id }} {
+    margin-bottom: 30px;
+    color: {{ block.settings.heading_color }};
+  }
+
+  .ai-genre-grid__items-{{ ai_gen_id }} {
+    display: grid;
+    grid-template-columns: repeat({{ block.settings.columns_mobile }}, 1fr);
+    gap: {{ block.settings.gap_mobile }}px;
+    margin-bottom: 30px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .ai-genre-grid__items-{{ ai_gen_id }} {
+      grid-template-columns: repeat({{ block.settings.columns_desktop }}, 1fr);
+      gap: {{ block.settings.gap_desktop }}px;
+    }
+  }
+
+  .ai-genre-grid__item-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+  }
+
+  {% if block.settings.hover_effect == 'lift' %}
+    .ai-genre-grid__item-{{ ai_gen_id }}:hover {
+      transform: translateY(-8px);
+    }
+  {% elsif block.settings.hover_effect == 'scale' %}
+    .ai-genre-grid__item-{{ ai_gen_id }}:hover {
+      transform: scale(1.05);
+    }
+  {% elsif block.settings.hover_effect == 'rotate' %}
+    .ai-genre-grid__item-{{ ai_gen_id }}:hover {
+      transform: rotate(2deg);
+    }
+  {% endif %}
+
+  .ai-genre-grid__image-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    aspect-ratio: {{ block.settings.image_aspect_ratio }};
+    border-radius: {{ block.settings.border_radius }}px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 
+      inset {{ block.settings.inset_depth }}px {{ block.settings.inset_depth }}px {{ block.settings.inset_blur }}px rgba(0, 0, 0, {{ block.settings.inset_opacity }}),
+      inset -{{ block.settings.inset_depth }}px -{{ block.settings.inset_depth }}px {{ block.settings.inset_blur }}px rgba(0, 0, 0, {{ block.settings.inset_opacity }});
+  }
+
+  .ai-genre-grid__image-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .ai-genre-grid__placeholder-{{ ai_gen_id }} {
+    width: 100%;
+    height: 100%;
+    background-color: #f4f4f4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-genre-grid__placeholder-{{ ai_gen_id }} svg {
+    width: 60%;
+    height: 60%;
+    opacity: 0.3;
+  }
+
+  .ai-genre-grid__name-{{ ai_gen_id }} {
+    font-weight: 700;
+    font-size: {{ block.settings.name_font_size }}px;
+    color: {{ block.settings.name_color }};
+    text-align: center;
+  }
+
+  .ai-genre-grid__view-all-{{ ai_gen_id }} {
+    display: inline-block;
+    padding: 12px 32px;
+    background-color: {{ block.settings.button_bg_color }};
+    color: {{ block.settings.button_text_color }};
+    text-decoration: none;
+    border-radius: {{ block.settings.button_border_radius }}px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+
+  .ai-genre-grid__view-all-{{ ai_gen_id }}:hover {
+    background-color: {{ block.settings.button_hover_bg_color }};
+    transform: translateY(-2px);
+  }
+{% endstyle %}
+
+<genre-grid-{{ ai_gen_id }} class="ai-genre-grid-{{ ai_gen_id }}" {{ block.shopify_attributes }}>
+  <div class="ai-genre-grid__container-{{ ai_gen_id }}">
+    {% if block.settings.heading != blank %}
+      <h2 class="ai-genre-grid__heading-{{ ai_gen_id }}">{{ block.settings.heading }}</h2>
+    {% endif %}
+
+    <div class="ai-genre-grid__items-{{ ai_gen_id }}">
+      {% for i in (1..20) %}
+        {% liquid
+          assign image_key = 'genre_image_' | append: i
+          assign name_key = 'genre_name_' | append: i
+          assign url_key = 'genre_url_' | append: i
+          
+          assign genre_image = block.settings[image_key]
+          assign genre_name = block.settings[name_key]
+          assign genre_url = block.settings[url_key]
+        %}
+
+        {% if genre_name != blank %}
+          <a 
+            href="{% if genre_url != blank %}{{ genre_url }}{% else %}#{% endif %}" 
+            class="ai-genre-grid__item-{{ ai_gen_id }}"
+          >
+            <div class="ai-genre-grid__image-wrapper-{{ ai_gen_id }}">
+              {% if genre_image %}
+                <img
+                  src="{{ genre_image | image_url: width: 400 }}"
+                  alt="{{ genre_name | escape }}"
+                  class="ai-genre-grid__image-{{ ai_gen_id }}"
+                  loading="lazy"
+                  width="400"
+                  height="{{ 400 | divided_by: block.settings.image_aspect_ratio | round }}"
+                >
+              {% else %}
+                <div class="ai-genre-grid__placeholder-{{ ai_gen_id }}">
+                  {{ 'image' | placeholder_svg_tag }}
+                </div>
+              {% endif %}
+            </div>
+            <div class="ai-genre-grid__name-{{ ai_gen_id }}">{{ genre_name }}</div>
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if block.settings.view_all_text != blank %}
+      <a 
+        href="{% if block.settings.view_all_url != blank %}{{ block.settings.view_all_url }}{% else %}#{% endif %}" 
+        class="ai-genre-grid__view-all-{{ ai_gen_id }}"
+      >
+        {{ block.settings.view_all_text }}
+      </a>
+    {% endif %}
+  </div>
+</genre-grid-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class GenreGrid{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.setupAccessibility();
+      }
+
+      setupAccessibility() {
+        const items = this.querySelectorAll('.ai-genre-grid__item-{{ ai_gen_id }}');
+        items.forEach(item => {
+          if (item.getAttribute('href') === '#') {
+            item.setAttribute('aria-disabled', 'true');
+          }
+        });
+      }
+    }
+
+    customElements.define('genre-grid-{{ ai_gen_id }}', GenreGrid{{ ai_gen_id }});
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Trending genres",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Section"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Trending Genres"
+    },
+    {
+      "type": "color",
+      "id": "heading_color",
+      "label": "Heading color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "range",
+      "id": "columns_mobile",
+      "label": "Columns on mobile",
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "label": "Columns on desktop",
+      "min": 3,
+      "max": 8,
+      "step": 1,
+      "default": 6
+    },
+    {
+      "type": "range",
+      "id": "gap_mobile",
+      "label": "Gap on mobile",
+      "min": 5,
+      "max": 40,
+      "step": 5,
+      "unit": "px",
+      "default": 15
+    },
+    {
+      "type": "range",
+      "id": "gap_desktop",
+      "label": "Gap on desktop",
+      "min": 10,
+      "max": 60,
+      "step": 5,
+      "unit": "px",
+      "default": 20
+    },
+    {
+      "type": "header",
+      "content": "Image style"
+    },
+    {
+      "type": "range",
+      "id": "image_aspect_ratio",
+      "label": "Aspect ratio",
+      "min": 0.5,
+      "max": 1,
+      "step": 0.1,
+      "default": 0.7,
+      "info": "Lower values create taller portrait images"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 16
+    },
+    {
+      "type": "header",
+      "content": "Inset shadow"
+    },
+    {
+      "type": "range",
+      "id": "inset_depth",
+      "label": "Depth",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "inset_blur",
+      "label": "Blur",
+      "min": 0,
+      "max": 30,
+      "step": 2,
+      "unit": "px",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "inset_opacity",
+      "label": "Opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "default": 0.3
+    },
+    {
+      "type": "header",
+      "content": "Genre name"
+    },
+    {
+      "type": "range",
+      "id": "name_font_size",
+      "label": "Font size",
+      "min": 10,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "default": 14
+    },
+    {
+      "type": "color",
+      "id": "name_color",
+      "label": "Text color",
+      "default": "#000000"
+    },
+    {
+      "type": "header",
+      "content": "Hover effect"
+    },
+    {
+      "type": "select",
+      "id": "hover_effect",
+      "label": "Effect",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "lift",
+          "label": "Lift"
+        },
+        {
+          "value": "scale",
+          "label": "Scale"
+        },
+        {
+          "value": "rotate",
+          "label": "Rotate"
+        }
+      ],
+      "default": "lift"
+    },
+    {
+      "type": "header",
+      "content": "View all button"
+    },
+    {
+      "type": "inline_richtext",
+      "id": "view_all_text",
+      "label": "Button text",
+      "default": "View All Genres"
+    },
+    {
+      "type": "url",
+      "id": "view_all_url",
+      "label": "Button link"
+    },
+    {
+      "type": "color",
+      "id": "button_bg_color",
+      "label": "Background color",
+      "default": "#104556"
+    },
+    {
+      "type": "color",
+      "id": "button_text_color",
+      "label": "Text color",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "button_hover_bg_color",
+      "label": "Hover background color",
+      "default": "#041116"
+    },
+    {
+      "type": "range",
+      "id": "button_border_radius",
+      "label": "Border radius",
+      "min": 0,
+      "max": 50,
+      "step": 2,
+      "unit": "px",
+      "default": 8
+    },
+    {
+      "type": "header",
+      "content": "Genre 1"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_1",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_1",
+      "label": "Name",
+      "default": "Action"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_1",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 2"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_2",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_2",
+      "label": "Name",
+      "default": "Romance"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_2",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 3"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_3",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_3",
+      "label": "Name",
+      "default": "Comedy"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_3",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 4"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_4",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_4",
+      "label": "Name",
+      "default": "Drama"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_4",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 5"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_5",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_5",
+      "label": "Name",
+      "default": "Thriller"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_5",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 6"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_6",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_6",
+      "label": "Name",
+      "default": "Horror"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_6",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 7"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_7",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_7",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_7",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 8"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_8",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_8",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_8",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 9"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_9",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_9",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_9",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 10"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_10",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_10",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_10",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 11"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_11",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_11",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_11",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 12"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_12",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_12",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_12",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 13"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_13",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_13",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_13",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 14"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_14",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_14",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_14",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 15"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_15",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_15",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_15",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 16"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_16",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_16",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_16",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 17"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_17",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_17",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_17",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 18"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_18",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_18",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_18",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 19"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_19",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_19",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_19",
+      "label": "Link"
+    },
+    {
+      "type": "header",
+      "content": "Genre 20"
+    },
+    {
+      "type": "image_picker",
+      "id": "genre_image_20",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "genre_name_20",
+      "label": "Name"
+    },
+    {
+      "type": "url",
+      "id": "genre_url_20",
+      "label": "Link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Trending genres"
+    }
+  ]
+}
+{% endschema %}
